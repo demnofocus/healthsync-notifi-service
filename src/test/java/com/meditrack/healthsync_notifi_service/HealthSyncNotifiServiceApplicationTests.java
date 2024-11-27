@@ -1,10 +1,10 @@
-package com.meditrack.meditrack_notifi_service;
+package com.meditrack.healthsync_notifi_service;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class MeditrackNotifiServiceApplicationTests {
+class HealthSyncNotifiServiceApplicationTests {
 
 	@Test
 	void contextLoads() {
