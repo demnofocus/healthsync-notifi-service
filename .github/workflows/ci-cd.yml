@@ -1,0 +1,71 @@
+name: CI/CD Pipeline for Notification Service
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the code
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # Step 2: Set up JDK for Maven
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      # Step 3: Cache Maven dependencies
+      - name: Cache Maven dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      # Step 4: Build the service
+      - name: Build with Maven
+        run: mvn clean package -DskipTests
+
+      # Step 5: Log in to Docker Hub
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # Step 6: Build the Docker image
+      - name: Build Docker Image
+        run: docker build -t your-dockerhub-username/healthsync-notifi-service:${{ github.sha }} .
+
+      # Step 7: Push the Docker image to Docker Hub
+      - name: Push Docker Image
+        run: docker push your-dockerhub-username/healthsync-notifi-service:${{ github.sha }}
+
+      # Step 8: Set up Kubectl
+      - name: Set up Kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
+
+      # Step 9: Authenticate with Kubernetes Cluster
+      - name: Authenticate with Kubernetes Cluster
+        run: |
+          echo "${{ secrets.KUBE_CONFIG }}" > kubeconfig
+          export KUBECONFIG=kubeconfig
+
+      # Step 10: Deploy to Kubernetes
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl apply -f k8s-deployment.yaml
+          kubectl set image deployment/healthsync-notifi-deployment healthsync-notifi-container=your-dockerhub-username/healthsync-notifi-service:${{ github.sha }}
