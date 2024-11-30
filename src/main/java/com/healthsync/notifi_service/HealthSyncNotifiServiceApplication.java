@@ -1,9 +1,11 @@
-package com.meditrack.healthsync_notifi_service;
+package com.healthsync.notifi_service;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
+@EnableScheduling
 public class HealthSyncNotifiServiceApplication {
 
 	public static void main(String[] args) {
